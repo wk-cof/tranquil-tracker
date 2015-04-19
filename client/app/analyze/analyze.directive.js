@@ -5,11 +5,8 @@ angular.module('frontendApp')
   function($window, $timeout, d3Service) {
     return {
       restrict: 'A',
-      scope: {
-        data: '=',
-        label: '@',
-        onClick: '&'
-      },
+      replace: true,
+      template: "<a>hello</a>",
       link: function(scope, ele, attrs) {
         d3Service.d3().then(function(d3) {
  
