@@ -5,6 +5,10 @@ angular.module('frontendApp')
     $scope.menu = [{
       'title': 'Home',
       'link': '/'
+    },
+    {
+      'title': 'Analyze',
+      'link': '/analyze'
     }
     ];
 
