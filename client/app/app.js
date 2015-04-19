@@ -1,4 +1,8 @@
 'use strict';
+// After app modification run
+//   grunt build
+// Then deploy with
+//   grunt buildcontrol:heroku
 
 
 angular.module('d3', [])
