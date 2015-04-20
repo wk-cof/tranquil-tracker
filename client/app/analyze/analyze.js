@@ -6,8 +6,6 @@ angular.module('frontendApp')
     $stateProvider
       .state('analyze', {
         url: '/analyze',
-        templateUrl: 'app/analyze/analyze.html',
-        directive: 'app/analyze/analyze.directive.js'
-        // controller: 'app/analyze/analyze.controller.js'
+        templateUrl: 'app/analyze/analyze.html'
       });
   });

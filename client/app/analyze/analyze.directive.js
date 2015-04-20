@@ -1,90 +1,145 @@
 'use strict';
 
 angular.module('frontendApp')
-  .directive('analyze', ['$window', '$timeout', 'd3Service', 
-  function($window, $timeout, d3Service) {
+  .directive('analyze', ['$window', '$timeout',
+  function($window, $timeout) {
     return {
-      restrict: 'A',
-      link: function(scope, ele, attrs) {
+      restrict: 'E',
+      replace: true,
+      controller: 'AnalyzeCtrl',
+      link: function(scope, ele, attrs) { 
+      		var n = scope.tableData.n;
+      		var m = scope.tableData.m;
+      		var stack = scope.tableData.stack;
+      		var layers = scope.tableData.layers;
+      		var yStackMax = scope.tableData.yStackMax;
+      		var yGroupMax = scope.tableData.yGroupMax;
 
-        d3Service.d3().then(function(d3) {
- 
-          var renderTimeout;
-          var margin = parseInt(attrs.margin) || 20,
-              barHeight = parseInt(attrs.barHeight) || 20,
-              barPadding = parseInt(attrs.barPadding) || 5;
- 
-          var svg = d3.select(ele[0])
-            .append('svg')
-            .style('width', '100%');
- 
-          $window.onresize = function() {
-            scope.$apply();
-          };
- 
-          scope.$watch(function() {
-            return angular.element($window)[0].innerWidth;
-          }, function() {
-            scope.render(scope.data);
-          });
- 
-          scope.$watch('data', function(newData) {
-            scope.render(newData);
-          }, true);
- 
-          scope.render = function(data) {
-            svg.selectAll('*').remove();
- 
-            if (!data) return;
-            if (renderTimeout) clearTimeout(renderTimeout);
- 
-            renderTimeout = $timeout(function() {
-              var width = d3.select(ele[0])[0][0].offsetWidth - margin,
-                  height = scope.data.length * (barHeight + barPadding),
-                  color = d3.scale.category20(),
-                  xScale = d3.scale.linear()
-                    .domain([0, d3.max(data, function(d) {
-                      return d.score;
-                    })])
-                    .range([0, width]);
- 
-              svg.attr('height', height);
- 
-              svg.selectAll('rect')
-                .data(data)
-                .enter()
-                  .append('rect')
-                  .on('click', function(d,i) {
-                    return scope.onClick({item: d});
-                  })
-                  .attr('height', barHeight)
-                  .attr('width', 140)
-                  .attr('x', Math.round(margin/2))
-                  .attr('y', function(d,i) {
-                    return i * (barHeight + barPadding);
-                  })
-                  .attr('fill', function(d) {
-                    return color(d.score);
-                  })
-                  .transition()
-                    .duration(1000)
-                    .attr('width', function(d) {
-                      return xScale(d.score);
-                    });
-              svg.selectAll('text')
-                .data(data)
-                .enter()
-                  .append('text')
-                  .attr('fill', '#fff')
-                  .attr('y', function(d,i) {
-                    return i * (barHeight + barPadding) + 15;
-                  })
-                  .attr('x', 15)
-                  .text(function(d) {
-                    return d.name + " (scored: " + d.score + ")";
-                  });
-            }, 200);
-          };
-        });
+			var margin = {top: 40, right: 10, bottom: 20, left: 10},
+			    width = 860 - margin.left - margin.right,
+			    height = 300 - margin.top - margin.bottom;
+
+			var x = d3.scale.ordinal()
+			    .domain(d3.range(m))
+			    .rangeRoundBands([0, width], .08);
+
+			var y = d3.scale.linear()
+			    .domain([0, yStackMax])
+			    .range([height, 0]);
+
+			var color = d3.scale.linear()
+			    .domain([0, n - 1])
+			    .range(["#1ad", "#a56"]);
+
+			var xAxis = d3.svg.axis()
+			    .scale(x)
+			    .tickSize(0)
+			    .tickPadding(6)
+			    .orient("bottom");
+
+	      	var svg = d3.select(ele[0])
+	      		.append("svg")
+			    .attr("width", width + margin.left + margin.right)
+			    .attr("height", height + margin.top + margin.bottom)
+			    .append("g")
+			    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+			var layer = svg.selectAll(".layer")
+			    .data(layers)
+				.enter()
+				.append("g")
+			    .attr("class", "layer")
+			    .style("fill", function(d, i) { return color(i); });
+
+
+			var rect = layer.selectAll("rect")
+			    .data(function(d) {
+			    	return d;
+			    })
+				.enter().append("rect")
+			    .attr("x", function(d) {
+			    	return x(d.x);
+			    })
+			    .attr("y", height)
+			    .attr("width", x.rangeBand())
+			    .attr("height", 0);
+
+			rect.transition()
+			    .delay(function(d, i) { return i * 10; })
+			    .attr("y", function(d) { return y(d.y0 + d.y); })
+			    .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); });
+
+		    // TODO: add timestamp here instead
+			svg.append("g")
+			    .attr("class", "x axis")
+			    .attr("transform", "translate(0," + height + ")")
+			    .call(xAxis);
+
+	        var svg = d3.select(ele[0])
+	        	.append('svg')
+	        	.style('width', '100%');
+				
+			function todo (argument) {
+				// d3.selectAll("input").on("change", change);
+
+				// var timeout = setTimeout(function() {
+				// 	d3.select("input[value=\"grouped\"]").property("checked", true).each(change);
+				// }, 2000);
+
+
+				// rect.transition()
+				//     .delay(function(d, i) { return i * 10; })
+				//     .attr("y", function(d) { return y(d.y0 + d.y); })
+				//     .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); });
+
+				// function change() {
+				//   clearTimeout(timeout);
+				//   if (this.value === "grouped") transitionGrouped();
+				//   else transitionStacked();
+				// }
+				// function transitionGrouped() {
+				//   y.domain([0, yGroupMax]);
+
+				//   rect.transition()
+				//       .duration(500)
+				//       .delay(function(d, i) { return i * 10; })
+				//       .attr("x", function(d, i, j) { return x(d.x) + x.rangeBand() / n * j; })
+				//       .attr("width", x.rangeBand() / n)
+				//       .transition()
+				//       .attr("y", function(d) { return y(d.y); })
+				//       .attr("height", function(d) { return height - y(d.y); });
+				// }
+
+				// function transitionStacked() {
+				//   y.domain([0, yStackMax]);
+
+				//   rect.transition()
+				//       .duration(500)
+				//       .delay(function(d, i) { return i * 10; })
+				//       .attr("y", function(d) { return y(d.y0 + d.y); })
+				//       .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); })
+				//       .transition()
+				//       .attr("x", function(d) { return x(d.x); })
+				//       .attr("width", x.rangeBand());
+				// }
+
+			}
+				
+	      $window.onresize = function() {
+	        scope.$apply();
+	      };
+
+	      scope.$watch(function() {
+	        return angular.element($window)[0].innerWidth;
+	      }, function() {
+	        scope.render(scope.data);
+	      });
+
+	      scope.$watch('data', function(newData) {
+	        scope.render(newData);
+	      }, true);
+
+	    scope.render = function(data) {
+        }
       }}
 }])
