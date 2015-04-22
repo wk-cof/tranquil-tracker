@@ -21,11 +21,33 @@ angular.module('frontendApp')
 		  return a.map(function(d, i) { return {x: i, y: Math.max(0, d)}; });
 		};
 
-      	var n = 3, // number of layers
+		var heartData = function heartData ( numberOfPoints ) {
+			var seed = 90,
+				deviation = 3,
+				attackFactor = 0.9,
+				attackRange = [10, 17];
+
+			return _.chain( _.range(0, numberOfPoints, 0) )
+					.map( function ( point, index ) {
+						var value = _.random( seed - deviation, seed + deviation );
+						return { x: index, y: value };
+					} )
+					.map( function ( elem, i ) {
+						if ( i > attackRange[ 0 ] && 
+							i <= attackRange[ 1 ] ) {
+							elem.y = elem.y * (1 + (i - attackRange[ 0 ])*attackFactor/(attackRange[ 1 ] - attackRange[ 0 ] ));
+						}
+						return elem;
+					} )
+					.value();
+		};
+
+      	var n = 1, // number of layers (heart, temperature, ECG)
 		    m = 30, // number of samples per layer
 		    stack = d3.layout.stack(),
 		    layers = stack(d3.range(n).map( function() { 
-		    	return bumpLayer(m, .1); 
+		    	// return bumpLayer(m, .1);
+	    		return heartData( m );
 		    })),
 		    yGroupMax = d3.max(layers, function(layer) {
 		    	return d3.max(layer, function(d) {
