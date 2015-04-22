@@ -1,126 +1,115 @@
 'use strict';
 
 angular.module('frontendApp')
-  .directive('analyze', ['$window', '$timeout',
-  function($window, $timeout) {
-    return {
-      restrict: 'E',
-      replace: true,
-      controller: 'AnalyzeCtrl',
-      link: function(scope, ele, attrs) { 
-      		var n = scope.tableData.n;
-      		var m = scope.tableData.m;
-      		var stack = scope.tableData.stack;
-      		var layers = scope.tableData.layers;
-      		var yStackMax = scope.tableData.yStackMax;
-      		var yGroupMax = scope.tableData.yGroupMax;
+	.directive('analyze', ['$window', '$timeout',
+		function($window, $timeout) {
+			return {
+				restrict: 'E',
+				replace: true,
+				controller: 'AnalyzeCtrl',
+				link: function(scope, ele, attrs) { 
+	      			scope.chartType = 'Stacked';
 
-			var margin = {top: 10, right: 10, bottom: 30, left: 10},
-			    width = 760 - margin.left - margin.right,
-			    height = 300 - margin.top - margin.bottom;
+					var margin = {top: 10, right: 10, bottom: 30, left: 10},
+					    width = 760 - margin.left - margin.right,
+					    height = 300 - margin.top - margin.bottom;
 
-			var x = d3.scale.ordinal()
-			    .domain(d3.range(scope.tableData.m))
-			    .rangeRoundBands([0, width], .1);
+					var x = d3.scale.ordinal()
+					    .domain(d3.range(scope.tableData.m))
+					    .rangeRoundBands([0, width], .1);
 
-			var y = d3.scale.linear()
-			    .domain([0, yStackMax])
-			    .range([height, 0]);
+					scope.y = d3.scale.linear()
+					    .domain([0, scope.tableData.yStackMax])
+					    .range([height, 0]);
 
-			var color = d3.scale.category20();
-				// d3.scale.linear()
-			 //    .domain([0, n - 1])
-			 //    .range(["#1ad", "#a56"]);
+					var color = d3.scale.category20();
+						// d3.scale.linear()
+					 //    .domain([0, scope.tableData.n - 1])
+					 //    .range(["#1ad", "#a56"]);
 
-			var xAxis = d3.svg.axis()
-			    .scale(x)
-			    .tickSize(0)
-			    .tickPadding(6)
-			    .orient("bottom");
+					var xAxis = d3.svg.axis()
+					    .scale(x)
+					    .tickSize(0)
+					    .tickPadding(6)
+					    .orient("bottom");
 
-	      	var svg = d3.select(ele[0])
-	      		.append("svg")
-			    .attr("width", width + margin.left + margin.right)
-			    .attr("height", height + margin.top + margin.bottom)
-			    .append("g")
-			    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			      	var svg = d3.select(ele[0])
+			      		.append("svg")
+					    .attr("width", width + margin.left + margin.right)
+					    .attr("height", height + margin.top + margin.bottom)
+					    .append("g")
+					    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-			var layer = svg.selectAll(".layer")
-			    .data(layers)
-				.enter()
-				.append("g")
-			    .attr("class", "layer")
-			    .style("fill", function(d, i) { return color(i); });
+					var layer = svg.selectAll(".layer")
+					    .data( scope.tableData.layers )
+						.enter()
+						.append("g")
+					    .attr("class", "layer")
+					    .style("fill", function(d, i) { return color(i); });
 
 
-			var rect = layer.selectAll("rect")
-			    .data(function(d) {
-			    	return d;
-			    })
-				.enter()
-				.append("rect")
-			    .attr("x", function(d) {
-			    	return x(d.x);
-			    })
-			    .attr("y", height)
-			    .attr("width", x.rangeBand())
-			    .attr("height", 0);
+					scope.rect = layer.selectAll("rect")
+					    .data(function(d) {
+					    	return d;
+					    })
+						.enter()
+						.append("rect")
+					    .attr("x", function(d) {
+					    	return x(d.x);
+					    })
+					    .attr("y", height)
+					    .attr("width", x.rangeBand())
+					    .attr("height", 0);
 
-			rect.transition()
-			    .delay(function(d, i) { return i * 10; })
-			    .attr("y", function(d) { return y(d.y0 + d.y); })
-			    .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); });
+					scope.rect.transition()
+					    .delay(function(d, i) { return i * 10; })
+					    .attr("y", function(d) { return scope.y(d.y0 + d.y); })
+					    .attr("height", function(d) { return scope.y(d.y0) - scope.y(d.y0 + d.y); });
 
-		    // TODO: add timestamp here instead
-			svg.append("g")
-			    .attr("class", "x axis")
-			    .attr("transform", "translate(0," + height + ")")
-			    .call(xAxis);
+				    // TODO: add timestamp here instead
+					svg.append("g")
+					    .attr("class", "x axis")
+					    .attr("transform", "translate(0," + height + ")")
+					    .call(xAxis);
+					
+					function transitionGrouped() {
+						scope.y.domain([0, scope.tableData.yGroupMax]);
 
-				
-			function todo (argument) {
+						scope.rect.transition()
+						.duration(500)
+						.delay(function(d, i) { return i * 10; })
+						.attr("x", function(d, i, j) { return x(d.x) + 
+							x.rangeBand() / scope.tableData.n * j; })
+						.attr("width", x.rangeBand() / scope.tableData.n)
+						.transition()
+						.attr("y", function(d) { return scope.y(d.y); })
+						.attr("height", function(d) { return height - scope.y(d.y); });
+					}
+
+					function transitionStacked() {
+						scope.y.domain([0, scope.tableData.yStackMax]);
+
+						scope.rect.transition()
+							.duration(500)
+							.delay(function(d, i) { return i * 10; })
+							.attr("y", function(d) { return scope.y(d.y0 + d.y); })
+							.attr("height", function(d) { return scope.y(d.y0) - scope.y(d.y0 + d.y); })
+							.transition()
+							.attr("x", function(d) { return x(d.x); })
+							.attr("width", x.rangeBand());
+					}
+
+					scope.$watch( 'chartType', function( newVal ) {
+						if (newVal == 'Grouped') {
+							transitionGrouped();
+						} else {
+							transitionStacked();
+						}
+					} );
+					function todo (argument) {
 				// d3.selectAll("input").on("change", change);
 
-				// var timeout = setTimeout(function() {
-				// 	d3.select("input[value=\"grouped\"]").property("checked", true).each(change);
-				// }, 2000);
-
-
-				// rect.transition()
-				//     .delay(function(d, i) { return i * 10; })
-				//     .attr("y", function(d) { return y(d.y0 + d.y); })
-				//     .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); });
-
-				// function change() {
-				//   clearTimeout(timeout);
-				//   if (this.value === "grouped") transitionGrouped();
-				//   else transitionStacked();
-				// }
-				// function transitionGrouped() {
-				//   y.domain([0, yGroupMax]);
-
-				//   rect.transition()
-				//       .duration(500)
-				//       .delay(function(d, i) { return i * 10; })
-				//       .attr("x", function(d, i, j) { return x(d.x) + x.rangeBand() / n * j; })
-				//       .attr("width", x.rangeBand() / n)
-				//       .transition()
-				//       .attr("y", function(d) { return y(d.y); })
-				//       .attr("height", function(d) { return height - y(d.y); });
-				// }
-
-				// function transitionStacked() {
-				//   y.domain([0, yStackMax]);
-
-				//   rect.transition()
-				//       .duration(500)
-				//       .delay(function(d, i) { return i * 10; })
-				//       .attr("y", function(d) { return y(d.y0 + d.y); })
-				//       .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); })
-				//       .transition()
-				//       .attr("x", function(d) { return x(d.x); })
-				//       .attr("width", x.rangeBand());
-				// }
+				
 
 			}
 				

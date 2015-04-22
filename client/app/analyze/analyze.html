@@ -1,6 +1,11 @@
 <div ng-include="'components/navbar/navbar.html'"></div>
 <img src="assets/images/tranquiltracker_dataanalysis.png" width="100%" alt="I'm Tranquil">
 <h1>Live data</h1>
+<div class="btn-group">
+	<label class="btn btn-primary" ng-model="chartType" btn-radio="'Grouped'">Grouped</label>
+	<label class="btn btn-primary" ng-model="chartType" btn-radio="'Stacked'">Stacked</label>
+</div>
+<br>
 <analyze></analyze>
 <h1>Anxiety Log</h1>
 <h3>Sunday, April 19</h3>

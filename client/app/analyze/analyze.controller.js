@@ -42,12 +42,12 @@ angular.module('frontendApp')
 					.value();
 		};
 
-      	var n = 1, // number of layers (heart, temperature, ECG)
+      	var n = 3, // number of layers (heart, temperature, ECG)
 		    m = 30, // number of samples per layer
 		    stack = d3.layout.stack(),
 		    layers = stack(d3.range(n).map( function() { 
-		    	// return bumpLayer(m, .1);
-	    		return heartData( m );
+		    	return bumpLayer(m, .1);
+	    		// return heartData( m );
 		    })),
 		    yGroupMax = d3.max(layers, function(layer) {
 		    	return d3.max(layer, function(d) {
