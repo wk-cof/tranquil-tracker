@@ -21,9 +21,8 @@ angular.module('frontendApp')
 		  return a.map(function(d, i) { return {x: i, y: Math.max(0, d)}; });
 		};
 
-      	// $scope.greeting = "Resize the page to see the re-rendering";
-	    var n = 4, // number of layers
-		    m = 58, // number of samples per layer
+      	var n = 3, // number of layers
+		    m = 30, // number of samples per layer
 		    stack = d3.layout.stack(),
 		    layers = stack(d3.range(n).map( function() { 
 		    	return bumpLayer(m, .1); 

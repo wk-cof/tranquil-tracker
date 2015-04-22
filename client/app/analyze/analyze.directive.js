@@ -15,21 +15,22 @@ angular.module('frontendApp')
       		var yStackMax = scope.tableData.yStackMax;
       		var yGroupMax = scope.tableData.yGroupMax;
 
-			var margin = {top: 40, right: 10, bottom: 20, left: 10},
-			    width = 860 - margin.left - margin.right,
+			var margin = {top: 10, right: 10, bottom: 30, left: 10},
+			    width = 760 - margin.left - margin.right,
 			    height = 300 - margin.top - margin.bottom;
 
 			var x = d3.scale.ordinal()
-			    .domain(d3.range(m))
-			    .rangeRoundBands([0, width], .08);
+			    .domain(d3.range(scope.tableData.m))
+			    .rangeRoundBands([0, width], .1);
 
 			var y = d3.scale.linear()
 			    .domain([0, yStackMax])
 			    .range([height, 0]);
 
-			var color = d3.scale.linear()
-			    .domain([0, n - 1])
-			    .range(["#1ad", "#a56"]);
+			var color = d3.scale.category20();
+				// d3.scale.linear()
+			 //    .domain([0, n - 1])
+			 //    .range(["#1ad", "#a56"]);
 
 			var xAxis = d3.svg.axis()
 			    .scale(x)
@@ -56,7 +57,8 @@ angular.module('frontendApp')
 			    .data(function(d) {
 			    	return d;
 			    })
-				.enter().append("rect")
+				.enter()
+				.append("rect")
 			    .attr("x", function(d) {
 			    	return x(d.x);
 			    })
@@ -75,9 +77,6 @@ angular.module('frontendApp')
 			    .attr("transform", "translate(0," + height + ")")
 			    .call(xAxis);
 
-	        var svg = d3.select(ele[0])
-	        	.append('svg')
-	        	.style('width', '100%');
 				
 			function todo (argument) {
 				// d3.selectAll("input").on("change", change);
